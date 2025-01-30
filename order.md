@@ -18,7 +18,7 @@
    - Add `regime_monitor.py` (polling mechanism with placeholder regime data).  
 
 3. **`utils/` (Foundational Tools)**  
-   - Implement `logger.py`, `date_utils.py`, and `error_handlers.py` (critical for debugging).  
+   - Implement `logger.py` (critical for debugging).  
 
 ---
 
