@@ -1,3 +1,6 @@
+# Data
+data/logs/*
+
 # Byte-compiled files
 __pycache__/
 *.py[cod]
