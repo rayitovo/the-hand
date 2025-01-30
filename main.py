@@ -104,24 +104,34 @@ class Strategist:
         logger.info("Strategist finished execution.")
 
 
-def run_backtest(strategy_name, regime):
+def run_backtest(strategy_name, regime, test_mode=False):
     """
     Runs backtest for a given strategy.
     Args:
         strategy_name (str): Name of the strategy file (e.g., 'ema_crossover').
         regime (str): Regime folder where strategy is located (e.g., 'bull').
+        test_mode (bool): If True, loads from to_test folder instead of approved.
     """
     logger.info(f"Starting backtest run for strategy: {strategy_name} in regime: {regime}")
 
-    # 1. Load Strategy dynamically (simplified loading)
+    # 1. Load Strategy dynamically
     try:
-        strategy_module = importlib.import_module(f'strategy.approved.{regime}.{strategy_name}')
-        strategy_class = getattr(strategy_module, "Strategy")  # Always load the class named "Strategy"
-        strategy = strategy_class(symbol="BTCUSDT")  # Example symbol
-        logger.info(f"Successfully loaded strategy: {strategy_name} from strategy/approved/{regime}/{strategy_name}.py")
+        folder = 'to_test' if test_mode else 'approved'
+        strategy_module = importlib.import_module(f'strategy.{folder}.{regime}.{strategy_name}')
+        strategy_class = getattr(strategy_module, "Strategy")
+        
+        # Validate strategy
+        from strategy.strategy_validator import StrategyValidator
+        is_valid, msg = StrategyValidator.validate_strategy(strategy_class)
+        if not is_valid:
+            logger.error(f"Strategy validation failed: {msg}")
+            return
+            
+        strategy = strategy_class(name=strategy_name, symbol="BTCUSDT")
+        logger.info(f"Successfully loaded strategy: {strategy_name} from strategy/{folder}/{regime}/{strategy_name}.py")
 
     except (ImportError, AttributeError) as e:
-        logger.error(f"Error loading strategy {strategy_name} from strategy/approved/{regime}: {e}")
+        logger.error(f"Error loading strategy {strategy_name} from strategy/{folder}/{regime}: {e}")
         return
 
     # 2. Fetch historical data (for BTCUSDT, adjust as needed)
@@ -187,11 +197,33 @@ if __name__ == "__main__":
         logger.info("Running in Backtest mode.")
         strategy_name = config.BACKTEST_STRATEGY
         regime = config.BACKTEST_REGIME
-        if not strategy_name or not regime:
+        
+        if strategy_name == "all":
+            # Test all strategies in to_test folder
+            logger.info("Testing all strategies in to_test folder")
+            for regime_folder in ["bear", "sideways"]:
+                try:
+                    # Get list of strategy files
+                    import os
+                    strategy_dir = f"strategy/to_test/{regime_folder}"
+                    strategies = [f[:-3] for f in os.listdir(strategy_dir)
+                                if f.endswith('.py') and not f.startswith('_')]
+                    
+                    for strategy in strategies:
+                        logger.info(f"Testing strategy: {strategy} in regime: {regime_folder}")
+                        run_backtest(strategy, regime_folder, test_mode=True)
+                        
+                        # TODO: Add logic to move strategy to approved/ or trash/
+                        # based on backtest results
+                        
+                except Exception as e:
+                    logger.error(f"Error testing strategies in {regime_folder}: {e}")
+                    
+        elif not strategy_name or not regime:
             logger.error("BACKTEST_STRATEGY and BACKTEST_REGIME must be defined in .env for backtest mode.")
             print("Error: BACKTEST_STRATEGY and BACKTEST_REGIME not configured. Check .env file.")
         else:
-            run_backtest(strategy_name, regime)  # Run backtest function
+            run_backtest(strategy_name, regime)  # Run backtest for single strategy
 
     else:
         logger.error(f"Invalid RUN_MODE in config: {config.RUN_MODE}. Must be 'strategist' or 'backtest'.")

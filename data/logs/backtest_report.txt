@@ -1,0 +1,16 @@
+
+        --- Backtest Report ---
+
+        Strategy Name: sideways_market_strategy
+        Symbol:          BTCUSDT
+        Backtest Duration: 1.39 seconds
+
+        Initial Balance:   $10000.00
+        Final Balance:     $10000.00
+        Final Portfolio Value: $10000.00
+        Total PnL:         $0.00
+
+        Trade History Log: data/logs/backtest_transactions.csv
+
+        --- End of Report ---
+        

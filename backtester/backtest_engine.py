@@ -84,7 +84,7 @@ class BacktestEngine:
             regime_label = row.get('regime_label', None)
 
             # Generate trading signal from the strategy (pass regime_label optionally)
-            signal = strategy.generate_signal(historical_data.loc[:current_timestamp], regime_label=regime_label)
+            signal = strategy.generate_signal(historical_data.loc[:current_timestamp])
             symbol = strategy.get_symbol()
 
             # Execute trades based on signal (in simulation)
