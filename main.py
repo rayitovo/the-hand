@@ -5,8 +5,11 @@ from data_module.data_fetcher import DataFetcher
 from data_module.data_cleaner import DataCleaner
 from regime_info.technical_analyzer import TechnicalAnalyzer
 from regime_info.regime_classifier import RegimeClassifier
-from strategist.execution_coordinator import ExecutionCoordinator # Import ExecutionCoordinator
+from strategist.execution_coordinator import ExecutionCoordinator
+from backtester.backtest_engine import BacktestEngine
+from backtester.report_generator import ReportGenerator
 import pandas as pd
+import importlib # For dynamic strategy loading
 
 class Strategist:
     def __init__(self, mode, asset_pairs, risk_tolerance, data_fetcher, data_cleaner, technical_analyzer, regime_classifier, execution_coordinator): # Add execution_coordinator
@@ -71,26 +74,94 @@ class Strategist:
                 logger.error(f"Failed to fetch historical data for {pair}.")
         logger.info("Strategist finished execution.")
 
+def run_backtest(strategy_name, regime):
+    """
+    Runs backtest for a given strategy.
+    Args:
+        strategy_name (str): Name of the strategy file (e.g., 'ema_crossover').
+        regime (str): Regime folder where strategy is located (e.g., 'bull').
+    """
+    logger.info(f"Starting backtest run for strategy: {strategy_name} in regime: {regime}")
+
+    # 1. Load Strategy dynamically
+    try:
+        strategy_module = importlib.import_module(f'strategy.approved.{regime}.{strategy_name}') # Assuming strategies are in strategy/approved/<regime>/
+        strategy_class = getattr(strategy_module, strategy_name.replace("_", "").title() + "Strategy") # e.g., ema_crossover -> EmaCrossoverStrategy
+        strategy = strategy_class(symbol="BTCUSDT") # Example symbol, adjust as needed, or pass from config
+        logger.info(f"Successfully loaded strategy: {strategy.get_strategy_name()} from strategy/approved/{regime}/{strategy_name}.py")
+    except (ImportError, AttributeError) as e:
+        logger.error(f"Error loading strategy {strategy_name} from strategy/approved/{regime}: {e}")
+        return
+
+    # 2. Fetch historical data (for BTCUSDT, adjust as needed)
+    fetcher = DataFetcher()
+    cleaner = DataCleaner()
+    pair = "BTC/USDT" # Example pair, could be parameterized
+    interval = "1d" # Example interval, could be parameterized
+    raw_historical_data = fetcher.fetch_historical_data(pair, interval=interval, limit=500) # Get enough data for backtest
+    if not raw_historical_data:
+        logger.error(f"Failed to fetch historical data for {pair}. Backtest aborted.")
+        return
+    cleaned_data = cleaner.clean_historical_data(raw_historical_data)
+    historical_df = pd.DataFrame(cleaned_data).set_index('close_timestamp')
+
+    # 3. Initialize Backtest Engine and Report Generator
+    backtest_engine = BacktestEngine()
+    report_generator = ReportGenerator()
+
+    # 4. Run Backtest
+    backtest_results = backtest_engine.run_backtest(strategy, historical_df, initial_balance_usd=10000)
+
+    # 5. Generate and Save Report
+    if backtest_results['status'] == 'completed':
+        report_text = report_generator.generate_report(backtest_results)
+        print(report_text) # Print to console
+        report_filepath = report_generator.save_report_to_file(report_text)
+        if report_filepath:
+            logger.info(f"Backtest report saved to: {report_filepath}")
+        else:
+            logger.error("Failed to save backtest report to file.")
+    else:
+        logger.error("Backtest run failed. No report generated.")
+        print("Backtest Failed. Check logs for details.")
+
 
 if __name__ == "__main__":
     logger.info("Starting the-hand crypto trading platform...")
 
-    data_fetcher = DataFetcher()
-    data_cleaner = DataCleaner()
-    technical_analyzer = TechnicalAnalyzer()
-    regime_classifier = RegimeClassifier()
-    execution_coordinator = ExecutionCoordinator(mode=config.MODE) # Initialize ExecutionCoordinator with mode from config
+    if config.RUN_MODE == "strategist":
+        logger.info("Running in Strategist mode.")
+        data_fetcher = DataFetcher()
+        data_cleaner = DataCleaner()
+        technical_analyzer = TechnicalAnalyzer()
+        regime_classifier = RegimeClassifier()
+        execution_coordinator = ExecutionCoordinator(mode=config.MODE)
 
-    strategist = Strategist(
-        mode=config.MODE,
-        asset_pairs=config.ASSET_PAIRS,
-        risk_tolerance=config.RISK_TOLERANCE,
-        data_fetcher=data_fetcher,
-        data_cleaner=data_cleaner,
-        technical_analyzer=technical_analyzer,
-        regime_classifier=regime_classifier,
-        execution_coordinator=execution_coordinator # Pass ExecutionCoordinator to Strategist
-    )
-    strategist.run()
+        strategist = Strategist(
+            mode=config.MODE,
+            asset_pairs=config.ASSET_PAIRS,
+            risk_tolerance=config.RISK_TOLERANCE,
+            data_fetcher=data_fetcher,
+            data_cleaner=data_cleaner,
+            technical_analyzer=technical_analyzer,
+            regime_classifier=regime_classifier,
+            execution_coordinator=execution_coordinator
+        )
+        strategist.run()
+
+    elif config.RUN_MODE == "backtest":
+        logger.info("Running in Backtest mode.")
+        strategy_name = config.BACKTEST_STRATEGY
+        regime = config.BACKTEST_REGIME
+        if not strategy_name or not regime:
+            logger.error("BACKTEST_STRATEGY and BACKTEST_REGIME must be defined in .env for backtest mode.")
+            print("Error: BACKTEST_STRATEGY and BACKTEST_REGIME not configured. Check .env file.")
+        else:
+            run_backtest(strategy_name, regime) # Run backtest function
+
+    else:
+        logger.error(f"Invalid RUN_MODE in config: {config.RUN_MODE}. Must be 'strategist' or 'backtest'.")
+        print(f"Error: Invalid RUN_MODE configured. Check .env file. Must be 'strategist' or 'backtest'.")
+
 
     logger.info("the-hand platform execution completed.")

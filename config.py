@@ -4,8 +4,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MODE = os.getenv("MODE", "simulation")  # Default to "simulation" if MODE is not set in .env
-ASSET_PAIRS = os.getenv("ASSET_PAIRS", "BTC/USDT,ETH/USDT").split(",") # Default pairs, split into a list
-RISK_TOLERANCE = float(os.getenv("RISK_TOLERANCE", 0.02)) # Default risk tolerance, convert to float
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO") # Default log level
-DATA_SOURCE = os.getenv("DATA_SOURCE", "binance") # Default data source
+MODE = os.getenv("MODE", "simulation")
+ASSET_PAIRS = os.getenv("ASSET_PAIRS", "BTC/USDT,ETH/USDT").split(",")
+RISK_TOLERANCE = float(os.getenv("RISK_TOLERANCE", 0.02))
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+DATA_SOURCE = os.getenv("DATA_SOURCE", "binance")
+
+RUN_MODE = os.getenv("RUN_MODE", "strategist") # Default to 'strategist' run
+BACKTEST_STRATEGY = os.getenv("BACKTEST_STRATEGY") # Strategy name for backtesting
+BACKTEST_REGIME = os.getenv("BACKTEST_REGIME") # Regime for backtesting
