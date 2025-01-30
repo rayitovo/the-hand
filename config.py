@@ -25,3 +25,7 @@ BACKTEST_END_DATE = os.getenv('BACKTEST_END_DATE', '2024-12-31')
 BACKTEST_INITIAL_BALANCE = float(os.getenv('BACKTEST_INITIAL_BALANCE', 10000.0))
 
 MACRO_API_KEY = os.getenv("MACRO_API_KEY") # API key for macro data
+
+# Phase 8 demo exchange credentials
+DEMO_EXCHANGE_API_KEY = os.getenv("DEMO_EXCHANGE_API_KEY", "")
+DEMO_EXCHANGE_API_SECRET = os.getenv("DEMO_EXCHANGE_API_SECRET", "")

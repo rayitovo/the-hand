@@ -84,7 +84,7 @@
          -   Add logic for moving strategies from `strategy/to_test/` to `strategy/approved/` or `strategy/trash/` based on performance thresholds (e.g., Sharpe ratio, max drawdown).
     -   Update the backtest loop to automatically move strategies after testing.
 
-#### **Phase 7: Strategy Development and Testing**
+#### **Phase 7: Strategy Development and Testing** (done)
 16. **`strategy/`**
      - Create new folders inside the `to_test/` folder to simulate the real logic of testing the strategies.
      - Populate `strategy/to_test/` with at least two new strategies for different regimes.
