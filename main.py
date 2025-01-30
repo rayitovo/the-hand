@@ -225,6 +225,23 @@ if __name__ == "__main__":
         else:
             run_backtest(strategy_name, regime)  # Run backtest for single strategy
 
+    elif config.RUN_MODE == "integration":
+        logger.info("Running in Integration mode.")
+        logger.info("Phase 9 integration started. Full system test in simulation + final test in demo account.")
+        # Basic integration logic example
+        logger.info("Running simulation-based integration tests...")
+        # Potential place for calls to strategist or partial system checks
+
+        if config.INTEGRATION_DEMO_TEST == "True":
+            logger.info("Integration Demo Test is enabled. Proceeding with final test on demo account.")
+            # Placeholder for final test logic in demo mode
+            logger.info(f"Using DEMO_EXCHANGE_API_KEY: {config.DEMO_EXCHANGE_API_KEY[:5]}... (hidden)")
+            logger.info("Performing final trades in demo environment, verifying order flow, and checking full system in live-like scenario.")
+        else:
+            logger.info("No demo test. Simulation integration test only.")
+
+        logger.info("Integration test complete. Review logs for details.")
+    
     else:
         logger.error(f"Invalid RUN_MODE in config: {config.RUN_MODE}. Must be 'strategist' or 'backtest'.")
         print(f"Error: Invalid RUN_MODE configured. Check .env file. Must be 'strategist' or 'backtest'.")

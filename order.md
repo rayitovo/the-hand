@@ -95,7 +95,7 @@
      - Update `main.py` to run the `backtester/` on the `strategy/to_test` strategies.
      - Test a few strategies and confirm that they are correctly moved to `strategy/approved/` or `strategy/trash/` based on their performance in the backtest.
 
-#### **Phase 8: Trader/Simulation Refinements**
+#### **Phase 8: Trader/Simulation Refinements** (done)
 
 18. **`trader/`**
     -  Implement the complete `order_executor.py` to handle different types of orders (market, limit, OCO) using the actual exchange API.

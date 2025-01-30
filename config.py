@@ -11,6 +11,7 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 DATA_SOURCE = os.getenv("DATA_SOURCE", "binance")
 
 RUN_MODE = os.getenv("RUN_MODE", "strategist") # Default to 'strategist' run
+INTEGRATION_DEMO_TEST = os.getenv("INTEGRATION_DEMO_TEST", "False")
 BACKTEST_STRATEGY = os.getenv("BACKTEST_STRATEGY", "all") # Strategy name for backtesting
 BACKTEST_REGIME = os.getenv("BACKTEST_REGIME", "bull") # Regime for backtesting
 
