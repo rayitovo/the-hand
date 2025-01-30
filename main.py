@@ -5,14 +5,17 @@ from data_module.data_fetcher import DataFetcher
 from data_module.data_cleaner import DataCleaner
 from regime_info.technical_analyzer import TechnicalAnalyzer
 from regime_info.regime_classifier import RegimeClassifier
+from regime_info.macro_analyzer import MacroAnalyzer
 from strategist.execution_coordinator import ExecutionCoordinator
 from backtester.backtest_engine import BacktestEngine
 from backtester.report_generator import ReportGenerator
+from trader.risk_manager import RiskManager
 import pandas as pd
 import importlib
+import re
 
 class Strategist:
-    def __init__(self, mode, asset_pairs, risk_tolerance, data_fetcher, data_cleaner, technical_analyzer, regime_classifier, execution_coordinator):
+    def __init__(self, mode, asset_pairs, risk_tolerance, data_fetcher, data_cleaner, technical_analyzer, regime_classifier, execution_coordinator, risk_manager):
         self.mode = mode
         self.asset_pairs = asset_pairs
         self.risk_tolerance = risk_tolerance
@@ -21,6 +24,7 @@ class Strategist:
         self.technical_analyzer = technical_analyzer
         self.regime_classifier = regime_classifier
         self.execution_coordinator = execution_coordinator
+        self.risk_manager = risk_manager
         self.current_prices = {}  # Initialize dictionary to store current prices
         logger.info(f"Strategist initialized in {self.mode} mode for pairs: {self.asset_pairs} with risk tolerance: {self.risk_tolerance}")
 
@@ -34,8 +38,22 @@ class Strategist:
                     df = pd.DataFrame(cleaned_data)
                     close_prices = df['close']
 
-                    # Example: Classify regime
-                    regime = self.regime_classifier.classify_regime_sma_crossover(close_prices)
+                    # Example: Classify regime (using ML model now)
+                    # This part has been updated, so first prepare the features
+                    sma_50 = self.technical_analyzer.calculate_sma(close_prices, window=50)
+                    sma_200 = self.technical_analyzer.calculate_sma(close_prices, window=200)
+                    # Add CPI data. fetch CPI data for last 30 days.
+                    end_date_cpi = pd.Timestamp.today().strftime('%Y-%m-%d')
+                    start_date_cpi = pd.Timestamp.today() - pd.Timedelta(days=30)
+                    start_date_cpi = start_date_cpi.strftime('%Y-%m-%d')
+                    macro_analyzer = MacroAnalyzer()
+                    cpi_data = macro_analyzer.fetch_cpi(start_date=start_date_cpi, end_date=end_date_cpi) # The cpi should be time series data. Get latest data.
+                    cpi_values = [item['cpi'] for item in cpi_data['data']] if cpi_data and cpi_data['status'] == 'success' else [0]
+                    cpi_val = cpi_values[-1] if cpi_values else 0 # Get the latest value.
+                    features = pd.DataFrame({'SMA50': [sma_50.iloc[-1]], 'SMA200': [sma_200.iloc[-1]], 'CPI': [cpi_val]})  # Create features DataFrame for model
+
+                    regime = self.regime_classifier.predict(features)[0] if self.regime_classifier.model else self.regime_classifier.classify_regime_sma_crossover(close_prices) # If model is None fallback to SMA crossover
+
                     logger.info(f"Market regime for {pair}: {regime}")
 
                     # --- Example Strategy Logic (Simplified for Phase 3) ---
@@ -46,34 +64,45 @@ class Strategist:
                         symbol = pair.replace("/", "")
                         self.current_prices[symbol] = current_price  # Update current_prices dictionary
 
+                        # --- RISK Management Check ---
+                        portfolio_value = self.execution_coordinator.get_portfolio_status(current_prices_usd=self.current_prices)['portfolio_value_usd']
+                        order_params = {'order_type': 'buy', 'symbol': symbol, 'amount': 0.01, 'price': current_price} # Example amount
                         if regime == 'bull':
-                            order_params = {'order_type': 'buy', 'symbol': symbol, 'amount': 0.01, 'price': current_price}
-                            execution_result = self.execution_coordinator.execute_trade(order_params)
-                            logger.info(f"Buy order placed for {pair} in bull regime. Result: {execution_result}")
+                             if not self.risk_manager.check_trade_limits(order_params, portfolio_value):
+                                 logger.warning(f"Trade limits exceeded for {pair}, skipping trading logic.")
+                                 continue # Skip this trade if limits are exceeded
+                             else:
+                                 execution_result = self.execution_coordinator.execute_trade(order_params)
+                                 logger.info(f"Buy order placed for {pair} in bull regime. Result: {execution_result}")
                         elif regime == 'bear':
                             positions = self.execution_coordinator.get_portfolio_status()['positions']
                             if symbol in positions and positions[symbol]['amount'] > 0:
                                 order_params = {'order_type': 'sell', 'symbol': symbol, 'amount': positions[symbol]['amount'], 'price': current_price}
-                                execution_result = self.execution_coordinator.execute_trade(order_params)
-                                logger.info(f"Sell order placed for {pair} in bear regime. Result: {execution_result}")
+                                if not self.risk_manager.check_trade_limits(order_params, portfolio_value):
+                                    logger.warning(f"Trade limits exceeded for {pair}, skipping trading logic.")
+                                    continue # Skip this trade if limits are exceeded
+                                else:
+                                    execution_result = self.execution_coordinator.execute_trade(order_params)
+                                    logger.info(f"Sell order placed for {pair} in bear regime. Result: {execution_result}")
                             else:
                                 logger.info(f"Bear regime for {pair}, but no position to sell.")
                         elif regime == 'sideways':
                             logger.info(f"Sideways regime for {pair}, no action taken.")
-
+                        # --- End of Example Strategy Logic ---
                         # Log portfolio status after each pair's processing, including all current prices
                         portfolio_status = self.execution_coordinator.get_portfolio_status(current_prices_usd=self.current_prices)
                         logger.info(f"Portfolio Status after processing {pair}: {portfolio_status}")
 
                     else:
                         logger.warning(f"Could not fetch realtime price for {pair}, skipping trading logic.")
-                    # --- End of Example Strategy Logic ---
+
 
                 else:
                     logger.warning(f"No cleaned data for {pair}, skipping analysis and trading.")
             else:
                 logger.error(f"Failed to fetch historical data for {pair}.")
         logger.info("Strategist finished execution.")
+
 
 def run_backtest(strategy_name, regime):
     """
@@ -127,16 +156,19 @@ def run_backtest(strategy_name, regime):
         logger.error("Backtest run failed. No report generated.")
         print("Backtest Failed. Check logs for details.")
 
+
 if __name__ == "__main__":
     logger.info("Starting the-hand crypto trading platform...")
 
     if config.RUN_MODE == "strategist":
         logger.info("Running in Strategist mode.")
-        data_fetcher = DataFetcher()
+        data_fetcher = DataFetcher(data_source=config.DATA_SOURCE) # Initialize DataFetcher with config
         data_cleaner = DataCleaner()
         technical_analyzer = TechnicalAnalyzer()
         regime_classifier = RegimeClassifier()
+        macro_analyzer = MacroAnalyzer()
         execution_coordinator = ExecutionCoordinator(mode=config.MODE)
+        risk_manager = RiskManager()
 
         strategist = Strategist(
             mode=config.MODE,
@@ -146,7 +178,8 @@ if __name__ == "__main__":
             data_cleaner=data_cleaner,
             technical_analyzer=technical_analyzer,
             regime_classifier=regime_classifier,
-            execution_coordinator=execution_coordinator
+            execution_coordinator=execution_coordinator,
+            risk_manager = risk_manager
         )
         strategist.run()
 

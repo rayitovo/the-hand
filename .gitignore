@@ -1,5 +1,9 @@
 # Data
 data/logs/*
+*.db
+temp.txt
+temp.py
+temp.md
 
 # Byte-compiled files
 __pycache__/

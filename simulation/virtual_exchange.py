@@ -1,20 +1,24 @@
 # simulation/virtual_exchange.py
 import time
+import random
 from utils.logger import logger
 
 class VirtualExchange:
-    def __init__(self):
-        logger.info("VirtualExchange initialized.")
+    def __init__(self, latency_mean=0.1, latency_std=0.02, slippage_mean=0.0001, slippage_std=0.00005):
+        self.latency_mean = latency_mean  # Mean latency in seconds
+        self.latency_std = latency_std  # Standard deviation of latency
+        self.slippage_mean = slippage_mean # Mean slippage (as a fraction of price, e.g., 0.0001 means 0.01% slippage)
+        self.slippage_std = slippage_std # Standard deviation of slippage
+        logger.info("VirtualExchange initialized with latency and slippage simulation.")
 
     def execute_order(self, order_params):
         """
-        Simulates order execution on a virtual exchange.
+        Simulates order execution on a virtual exchange with latency and slippage.
         Args:
             order_params (dict): Dictionary containing order details:
                                  {'order_type': 'buy'/'sell', 'symbol': 'BTC', 'amount': float, 'price': float}
         Returns:
-            dict:  Order execution result: {'status': 'success'/'failure', 'executed_price': float, 'executed_amount': float}
-                   For simplicity, in this phase, we assume successful execution at the requested price.
+            dict: Order execution result: {'status': 'success'/'failure', 'executed_price': float, 'executed_amount': float, 'latency': float}
         """
         order_type = order_params.get('order_type')
         symbol = order_params.get('symbol')
@@ -33,21 +37,29 @@ class VirtualExchange:
             logger.error(f"Invalid order amount or price. Amount: {amount}, Price: {price}. Must be positive values.")
             return {'status': 'failure', 'message': 'Invalid amount or price'}
 
-        # Simulate order processing delay (optional)
-        time.sleep(0.1) # Simulate a small delay
+        # Simulate Latency
+        latency = random.gauss(self.latency_mean, self.latency_std)
+        latency = max(0, latency)  # Ensure latency is not negative
+        time.sleep(latency)
 
-        executed_price = price # In a virtual exchange, we can assume execution at requested price (no slippage in this phase)
+        # Simulate Slippage
+        slippage_factor = random.gauss(self.slippage_mean, self.slippage_std)
+        if order_type == 'buy':
+            executed_price = price * (1 + slippage_factor)  # Buyer pays more due to slippage
+        else:  # order_type == 'sell'
+            executed_price = price * (1 - slippage_factor)  # Seller receives less due to slippage
+
         executed_amount = amount
 
-        logger.info(f"Virtual Exchange: Executed {order_type} order for {executed_amount:.4f} {symbol} at ${executed_price:.2f}")
+        logger.info(f"Virtual Exchange: Executed {order_type} order for {executed_amount:.4f} {symbol} at ${executed_price:.2f} (requested price: ${price:.2f}, latency: {latency:.3f}s)")
         return {
             'status': 'success',
             'executed_price': executed_price,
             'executed_amount': executed_amount,
             'symbol': symbol,
-            'order_type': order_type
+            'order_type': order_type,
+            'latency': latency
         }
-
 
 if __name__ == '__main__':
     virtual_exchange = VirtualExchange()

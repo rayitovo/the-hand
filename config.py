@@ -13,3 +13,4 @@ DATA_SOURCE = os.getenv("DATA_SOURCE", "binance")
 RUN_MODE = os.getenv("RUN_MODE", "strategist") # Default to 'strategist' run
 BACKTEST_STRATEGY = os.getenv("BACKTEST_STRATEGY") # Strategy name for backtesting
 BACKTEST_REGIME = os.getenv("BACKTEST_REGIME") # Regime for backtesting
+MACRO_API_KEY = os.getenv("MACRO_API_KEY") # API key for macro data
