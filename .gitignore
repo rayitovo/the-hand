@@ -3,9 +3,10 @@
 temp.txt
 temp.py
 temp.md
-data/logs/
+data/logs
 # Byte-compiled files
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 

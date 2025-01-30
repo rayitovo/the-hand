@@ -1,4 +1,3 @@
-# strategy/approved/bull/ema_crossover.py
 from strategy.base_strategy import BaseStrategy
 import pandas as pd
 
@@ -8,7 +7,7 @@ class Strategy(BaseStrategy):  # All strategies will use the class name "Strateg
     Generates buy/sell signals based on the crossover of short and long period Exponential Moving Averages (EMAs).
     """
 
-    def __init__(self, symbol, params=None):
+    def __init__(self, name, symbol, params=None):
         """
         Constructor for Strategy.
         Params (dict, optional):
@@ -19,7 +18,7 @@ class Strategy(BaseStrategy):  # All strategies will use the class name "Strateg
         merged_params = default_params.copy()
         if params:
             merged_params.update(params)  # Override defaults with provided params
-        super().__init__(name="EMA Crossover", symbol=symbol, params=merged_params) # You can use a descriptive name here
+        super().__init__(name=name, symbol=symbol, params=merged_params) # You can use a descriptive name here
 
     def generate_signal(self, historical_data: pd.DataFrame, current_price: float = None) -> str:
         """

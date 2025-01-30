@@ -1,4 +1,9 @@
 # main.py
+# Add project root to Python path
+import os
+import sys
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_root)
 import config
 from utils.logger import logger
 from data_module.data_fetcher import DataFetcher
@@ -199,23 +204,43 @@ if __name__ == "__main__":
         regime = config.BACKTEST_REGIME
         
         if strategy_name == "all":
+            to_test_path = "strategy/to_test"
+            approved_path = "strategy/approved"
+            # get regimes in to_test
+            regimes_paths = os.listdir(to_test_path)
+            # filter only folders
+            regimes_paths = [r for r in regimes_paths if os.path.isdir(os.path.join(to_test_path, r))]
+
             # Test all strategies in to_test folder
             logger.info("Testing all strategies in to_test folder")
-            for regime_folder in ["bear", "sideways"]:
+            for regime_folder in regimes_paths:
                 try:
                     # Get list of strategy files
-                    import os
-                    strategy_dir = f"strategy/to_test/{regime_folder}"
+                    strategy_dir = f"{to_test_path}/{regime_folder}"
                     strategies = [f[:-3] for f in os.listdir(strategy_dir)
                                 if f.endswith('.py') and not f.startswith('_')]
                     
                     for strategy in strategies:
                         logger.info(f"Testing strategy: {strategy} in regime: {regime_folder}")
-                        run_backtest(strategy, regime_folder, test_mode=True)
-                        
-                        # TODO: Add logic to move strategy to approved/ or trash/
-                        # based on backtest results
-                        
+                        backtest_results = run_backtest(strategy, regime_folder, test_mode=True)
+                        if backtest_results and backtest_results['status'] == 'completed':
+                            if backtest_results['total_pnl_usd'] > 0:
+                                # Move to approved
+                                source_path = os.path.join(strategy_dir, strategy + '.py')
+                                dest_path_approved = os.path.join(approved_path, regime_folder, strategy + '.py')
+                                os.makedirs(os.path.dirname(dest_path_approved), exist_ok=True)
+                                os.rename(source_path, dest_path_approved)
+                                logger.info(f"Strategy {strategy} in {regime_folder} moved to approved due to positive PnL.")
+                            else:
+                                # Move to trash
+                                source_path = os.path.join(strategy_dir, strategy + '.py')
+                                dest_path_trash = os.path.join("strategy/trash", regime_folder, strategy + '.py') # trash folder in strategy root
+                                os.makedirs(os.path.dirname(dest_path_trash), exist_ok=True)
+                                os.rename(source_path, dest_path_trash)
+                                logger.info(f"Strategy {strategy} in {regime_folder} moved to trash due to non-positive PnL.")
+                        else:
+                            logger.error(f"Backtest for strategy {strategy} in {regime_folder} did not complete, skipping move.")
+
                 except Exception as e:
                     logger.error(f"Error testing strategies in {regime_folder}: {e}")
                     

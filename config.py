@@ -3,14 +3,14 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
 MODE = os.getenv("MODE", "simulation")
 ASSET_PAIRS = os.getenv("ASSET_PAIRS", "BTC/USDT,ETH/USDT").split(",")
 RISK_TOLERANCE = float(os.getenv("RISK_TOLERANCE", 0.02))
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 DATA_SOURCE = os.getenv("DATA_SOURCE", "binance")
 
-RUN_MODE = os.getenv("RUN_MODE", "strategist") # Default to 'strategist' run
+RUN_MODE = os.getenv("RUN_MODE") # Default to 'strategist' run
+print(RUN_MODE)
 INTEGRATION_DEMO_TEST = os.getenv("INTEGRATION_DEMO_TEST", "False")
 BACKTEST_STRATEGY = os.getenv("BACKTEST_STRATEGY", "all") # Strategy name for backtesting
 BACKTEST_REGIME = os.getenv("BACKTEST_REGIME", "bull") # Regime for backtesting

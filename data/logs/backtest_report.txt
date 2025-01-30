@@ -1,14 +1,14 @@
 
         --- Backtest Report ---
 
-        Strategy Name: sideways_market_strategy
+        Strategy Name: ema_crossover
         Symbol:          BTCUSDT
-        Backtest Duration: 1.39 seconds
+        Backtest Duration: 0.32 seconds
 
         Initial Balance:   $10000.00
-        Final Balance:     $10000.00
-        Final Portfolio Value: $10000.00
-        Total PnL:         $0.00
+        Final Balance:     $9524.37
+        Final Portfolio Value: $10582.02
+        Total PnL:         $582.02
 
         Trade History Log: data/logs/backtest_transactions.csv
 
