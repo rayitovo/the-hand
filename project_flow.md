@@ -1,4 +1,4 @@
-### the-hand
+### the-hand - flow
 agent-based crypto trading platform in python.
 
 #### **1. System Overview**

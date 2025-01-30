@@ -1,3 +1,4 @@
+# the-hand explanation
 Okay, imagine you're building a super smart robot that can trade cryptocurrencies for you, right?  That's basically what this project is all about!  Let's break it down like we're chatting about it.
 
 So, first up, we have the **`main.py` file**. Think of this as the "on" switch and the brain of the whole operation.  It's the first thing that runs.  It's like, "Hey system, wake up! Let's get to work!"  It also figures out if we're just practicing (simulation mode), testing old strategies (backtesting), or actually trading with real money (live trading).  It's like choosing if you want to play a game, test drive, or actually drive on the highway.

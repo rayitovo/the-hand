@@ -1,12 +1,5 @@
-**Opinion**: A **high-level (top-down) approach** is more suitable for this project. Starting with the main execution flow (`main.py`) and central coordinator (`strategist/`) allows you to:  
-1. Define clear interfaces between modules early.  
-2. Identify critical dependencies (e.g., what data `regime_info/` must provide).  
-3. Incrementally build lower-level components as needed, avoiding over-engineering.  
-
----
-
 ### **Implementation Order**  
-#### **Phase 1: Core Architecture & Workflow**  
+#### **Phase 1: Core Architecture & Workflow** (done)
 1. **`main.py`**  
    - Set up environment/config loading.  
    - Implement `mode_selector.py` to choose between live/simulation/backtesting.  
@@ -22,7 +15,7 @@
 
 ---
 
-#### **Phase 2: Data & Market Analysis**  
+#### **Phase 2: Data & Market Analysis** (done)
 4. **`data_module/` (Minimal Version)**  
    - Build `data_fetcher.py` (fetch live data from a single exchange).  
    - Add `data_cleaner.py` (basic normalization).  
@@ -35,7 +28,7 @@
 
 ---
 
-#### **Phase 3: Strategy Execution**  
+#### **Phase 3: Strategy Execution** (done)
 6. **`trading_core/`**  
    - Build `portfolio_manager.py` (track balances, PnL).  
    - Add `event_logger.py` (log trades to CSV).  
@@ -49,7 +42,7 @@
 
 ---
 
-#### **Phase 4: Backtesting & Strategy Management**  
+#### **Phase 4: Backtesting & Strategy Management** (done)
 9. **`backtester/`**  
    - Build `backtest_engine.py` (replay historical data).  
    - Add `report_generator.py` (basic metrics like profit/loss).  
@@ -72,10 +65,3 @@
 13. **Optimize Execution**  
     - Add latency/slippage to `simulation/`.  
     - Implement risk management in `trader/risk_manager.py`.  
-
----
-
-### **Why This Order Works**  
-- **Early Integration**: By starting with `main.py` and `strategist/`, you validate the core workflow before diving into details.  
-- **Progressive Refinement**: Each phase builds on the previous one, ensuring lower-level modules (e.g., `data_module/`) evolve to meet the needs of higher-level components.  
-- **Risk Mitigation**: Critical tools like logging and error handling (`utils/`) are prioritized to catch issues early.
