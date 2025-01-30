@@ -1,0 +1,76 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment directories
+venv/
+env/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.eggs
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Cache files
+.cache/
+*.log
+*.gz
+
+# System files
+.DS_Store
+Thumbs.db
+
+# VSCode settings
+.vscode/
+
+# PyCharm settings
+.idea/
+
+# Environment variables and secrets
+.env
+*.key
+*.pem
+
+# Test coverage reports
+htmlcov/
+coverage.xml
+*.cover
+*.coverage
+.cache
+
+# PyTest logs
+.pytest_cache/
+
+# MyPy type checker
+.mypy_cache/
+dmypy.json
+dmypy.log
+
+# Profiler results
+*.prof
+
+# Python artifacts
+*.pyo
+*.pyd
+
+# Jupyter Notebook metadata
+*.ipynb
+
+# Model checkpoints
+checkpoints/
+*.ckpt
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Machine learning artifacts
+*.h5
+*.onnx
+*.pb
