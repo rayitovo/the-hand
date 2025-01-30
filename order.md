@@ -69,7 +69,7 @@
 
 ---
 
-#### **Phase 6: Historical Regime Data and Backtesting Integration** (todo)
+#### **Phase 6: Historical Regime Data and Backtesting Integration** (done)
 14. **`regime_info/` (Historical Regime Data)**
     -   Implement `historical_regime_provider.py`:
         -   Fetch historical data from `data_module/` for a specified time range.
