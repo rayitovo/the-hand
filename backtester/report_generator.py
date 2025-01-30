@@ -55,7 +55,7 @@ class ReportGenerator:
 if __name__ == '__main__':
     # Example usage (assuming you have backtest_results from BacktestEngine example):
     from backtester.backtest_engine import BacktestEngine
-    from strategy.approved.bull.ema_crossover import EMACrossoverStrategy
+    from strategy.approved.bull.ema_crossover import EmaCrossoverStrategy
     import data_module.data_fetcher
     import data_module.data_cleaner
     import pandas as pd
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     if raw_historical_data:
         cleaned_data = cleaner.clean_historical_data(raw_historical_data)
         historical_df = pd.DataFrame(cleaned_data).set_index('close_timestamp')
-        ema_strategy = EMACrossoverStrategy(symbol=pair.replace("/", ""))
+        ema_strategy = EmaCrossoverStrategy(symbol=pair.replace("/", ""))
         backtest_engine = BacktestEngine()
         backtest_results = backtest_engine.run_backtest(ema_strategy, historical_df, initial_balance_usd=10000)
 

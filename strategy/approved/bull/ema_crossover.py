@@ -2,7 +2,7 @@
 from strategy.base_strategy import BaseStrategy
 import pandas as pd
 
-class EMACrossoverStrategy(BaseStrategy):
+class Strategy(BaseStrategy):  # All strategies will use the class name "Strategy"
     """
     EMA Crossover Strategy.
     Generates buy/sell signals based on the crossover of short and long period Exponential Moving Averages (EMAs).
@@ -10,7 +10,7 @@ class EMACrossoverStrategy(BaseStrategy):
 
     def __init__(self, symbol, params=None):
         """
-        Constructor for EMACrossoverStrategy.
+        Constructor for Strategy.
         Params (dict, optional):
             'short_ema_period' (int): Period for the short EMA. Default is 20.
             'long_ema_period' (int): Period for the long EMA. Default is 50.
@@ -18,8 +18,8 @@ class EMACrossoverStrategy(BaseStrategy):
         default_params = {'short_ema_period': 20, 'long_ema_period': 50}
         merged_params = default_params.copy()
         if params:
-            merged_params.update(params) # Override defaults with provided params
-        super().__init__(name="EMA Crossover", symbol=symbol, params=merged_params)
+            merged_params.update(params)  # Override defaults with provided params
+        super().__init__(name="EMA Crossover", symbol=symbol, params=merged_params) # You can use a descriptive name here
 
     def generate_signal(self, historical_data: pd.DataFrame, current_price: float = None) -> str:
         """
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     }
     historical_df = pd.DataFrame(data).set_index('timestamp')
 
-    ema_strategy = EMACrossoverStrategy(symbol="BTCUSDT", params={'short_ema_period': 10, 'long_ema_period': 30}) # Example params
+    ema_strategy = Strategy(symbol="BTCUSDT", params={'short_ema_period': 10, 'long_ema_period': 30}) # Example params
     signal = ema_strategy.generate_signal(historical_df)
     print(f"Strategy: {ema_strategy.get_strategy_name()}, Symbol: {ema_strategy.get_symbol()}, Signal: {signal}, Params: {ema_strategy.get_params()}")
 

@@ -50,16 +50,13 @@ class BaseStrategy(ABC):
         return f"Strategy: {self.name}, Symbol: {self.symbol}, Params: {self.params}"
 
 # Example of how to define a concrete strategy (not in this file, but in strategy files)
-# class EMACrossoverStrategy(BaseStrategy):
+# class Strategy(BaseStrategy): # Use the same class name "Strategy" in all strategies
 #     def __init__(self, symbol, params=None):
-#         super().__init__(name="EMA Crossover", symbol=symbol, params=params)
+#         super().__init__(name="Example Strategy", symbol=symbol, params=params) # You can set a name here
 #
 #     def generate_signal(self, historical_data: pd.DataFrame, current_price: float = None) -> str:
 #         # ... Strategy logic here ...
 #         return 'buy' or 'sell' or 'hold'
 
 if __name__ == '__main__':
-    # Example of instantiating and using a BaseStrategy (you cannot directly instantiate BaseStrategy as it's abstract)
-    # strategy = BaseStrategy(name="ExampleStrategy", symbol="BTCUSDT", params={'param1': 10, 'param2': 20}) # This will raise TypeError
-    # print(strategy)
     print("This is the base strategy class definition. Concrete strategies should be defined in separate files and inherit from BaseStrategy.")

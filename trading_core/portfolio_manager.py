@@ -51,7 +51,7 @@ class PortfolioManager:
         self.positions[symbol] = current_position # Update the position in the dict
         logger.debug(f"Position for {symbol} updated. Amount: {current_amount:.4f}, Avg Price: ${current_position['avg_price']:.2f}")
 
-    def execute_trade(self, order_type, symbol, amount, price):
+    def execute_trade(self, order_type, symbol, amount, price, timestamp=None):
         """
         Executes a trade (buy or sell) and updates portfolio and trade history.
         Args:
@@ -59,6 +59,7 @@ class PortfolioManager:
             symbol (str): Crypto symbol (e.g., 'BTC').
             amount (float): Amount of crypto to trade.
             price (float): Execution price.
+            timestamp (pd.Timestamp, optional): Timestamp of the trade. Defaults to None.
         Returns:
             bool: True if trade executed successfully, False otherwise (e.g., insufficient balance).
         """
@@ -66,26 +67,32 @@ class PortfolioManager:
 
         if order_type == 'buy':
             if self.balance_usd >= usd_value:
-                self.update_balance(-usd_value) # Decrease USD balance
-                self.update_position(symbol, amount, price) # Increase crypto position
-                trade_record = {'type': 'buy', 'symbol': symbol, 'amount': amount, 'price': price, 'usd_value': usd_value, 'timestamp': pd.Timestamp.now()}
+                self.update_balance(-usd_value)  # Decrease USD balance
+                self.update_position(symbol, amount, price)  # Increase crypto position
+                trade_record = {'type': 'buy', 'symbol': symbol, 'amount': amount, 'price': price, 'usd_value': usd_value,
+                                'timestamp': timestamp if timestamp else pd.Timestamp.now()}  # Use provided timestamp or default to now()
                 self.trade_history.append(trade_record)
-                logger.info(f"BUY {amount:.4f} {symbol} at ${price:.2f}, Value: ${usd_value:.2f}. New balance: ${self.balance_usd:.2f}, Position: {self.positions[symbol]['amount']:.4f} {symbol}")
+                logger.info(
+                    f"BUY {amount:.4f} {symbol} at ${price:.2f}, Value: ${usd_value:.2f}. New balance: ${self.balance_usd:.2f}, Position: {self.positions[symbol]['amount']:.4f} {symbol}")
                 return True
             else:
-                logger.warning(f"Insufficient USD balance to BUY {amount:.4f} {symbol} at ${price:.2f}. Available balance: ${self.balance_usd:.2f}, Required: ${usd_value:.2f}")
+                logger.warning(
+                    f"Insufficient USD balance to BUY {amount:.4f} {symbol} at ${price:.2f}. Available balance: ${self.balance_usd:.2f}, Required: ${usd_value:.2f}")
                 return False
         elif order_type == 'sell':
             if symbol in self.positions and self.positions[symbol]['amount'] >= amount:
-                self.update_balance(usd_value) # Increase USD balance
-                self.update_position(symbol, -amount, price) # Decrease crypto position
-                trade_record = {'type': 'sell', 'symbol': symbol, 'amount': amount, 'price': price, 'usd_value': usd_value, 'timestamp': pd.Timestamp.now()}
+                self.update_balance(usd_value)  # Increase USD balance
+                self.update_position(symbol, -amount, price)  # Decrease crypto position
+                trade_record = {'type': 'sell', 'symbol': symbol, 'amount': amount, 'price': price, 'usd_value': usd_value,
+                                'timestamp': timestamp if timestamp else pd.Timestamp.now()}  # Use provided timestamp or default to now()
                 self.trade_history.append(trade_record)
-                logger.info(f"SELL {amount:.4f} {symbol} at ${price:.2f}, Value: ${usd_value:.2f}. New balance: ${self.balance_usd:.2f}, Position: {self.positions[symbol]['amount']:.4f} {symbol}")
+                logger.info(
+                    f"SELL {amount:.4f} {symbol} at ${price:.2f}, Value: ${usd_value:.2f}. New balance: ${self.balance_usd:.2f}, Position: {self.positions[symbol]['amount']:.4f} {symbol}")
                 return True
             else:
                 available_amount = self.positions[symbol]['amount'] if symbol in self.positions else 0
-                logger.warning(f"Insufficient {symbol} balance to SELL {amount:.4f} {symbol}. Available: {available_amount:.4f}, Requested: {amount:.4f}")
+                logger.warning(
+                    f"Insufficient {symbol} balance to SELL {amount:.4f} {symbol}. Available: {available_amount:.4f}, Requested: {amount:.4f}")
                 return False
         else:
             logger.error(f"Invalid order type: {order_type}. Must be 'buy' or 'sell'.")
@@ -128,7 +135,6 @@ class PortfolioManager:
             else:
                 position_pnl[symbol] = 0 # Or None, if you want to indicate no PnL calculated
         return {'position_pnl': position_pnl, 'total_pnl': total_pnl}
-
 
 if __name__ == '__main__':
     portfolio = PortfolioManager(initial_balance_usd=10000)

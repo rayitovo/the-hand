@@ -125,7 +125,7 @@ class BacktestEngine:
 
 if __name__ == '__main__':
     # Example backtest run:
-    from strategy.approved.bull.ema_crossover import EMACrossoverStrategy
+    from strategy.approved.bull.ema_crossover import EmaCrossoverStrategy
     import data_module.data_fetcher
     import data_module.data_cleaner
 
@@ -140,7 +140,7 @@ if __name__ == '__main__':
         historical_df = pd.DataFrame(cleaned_data).set_index('close_timestamp') # Use close_timestamp as index, assuming cleaned data has it
 
         # 2. Initialize strategy
-        ema_strategy = EMACrossoverStrategy(symbol=pair.replace("/", "")) # Initialize strategy with symbol
+        ema_strategy = EmaCrossoverStrategy(symbol=pair.replace("/", "")) # Initialize strategy with symbol
 
         # 3. Initialize backtest engine
         backtest_engine = BacktestEngine()
